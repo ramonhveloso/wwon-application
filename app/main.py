@@ -1,7 +1,8 @@
 from fastapi import FastAPI
+
 from app.api.v1.router import router as api_router
-from app.db.session import engine
 from app.db.base import Base
+from app.db.session import engine
 
 app = FastAPI()
 
@@ -13,4 +14,5 @@ app.include_router(api_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)

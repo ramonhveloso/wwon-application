@@ -1,8 +1,10 @@
 from pydantic import BaseModel
 
+
 class UserRequest(BaseModel):
     username: str
     password: str
+
 
 class User(BaseModel):
     id: int
@@ -10,6 +12,7 @@ class User(BaseModel):
 
     class Config:
         orm_mode = True
+
 
 class Token(BaseModel):
     access_token: str

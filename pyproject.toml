@@ -16,8 +16,24 @@ jose = "^1.0.0"
 python-jose = "^3.3.0"
 pre-commit = "^3.8.0"
 alembic = "^1.13.3"
+autoflake = "^2.3.1"
+mypy = "^1.11.2"
+isort = "^5.13.2"
+black = "^24.8.0"
+stubs = "^1.0.0"
+types-python-jose = "^3.3.4.20240106"
+types-passlib = "^1.7.7.20240819"
 
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+
+[tool.isort]
+profile = "black"
+line_length = 88
+multi_line_output = 3
+include_trailing_comma = true
+known_first_party = ["app"]
+default_section = "THIRDPARTY"
