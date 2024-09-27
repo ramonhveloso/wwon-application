@@ -1,18 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.api.v1.users.user_schemas import user as user_schema
-from app.api.v1.users.user_service import user_service
-from app.db.session import get_db
+from app.api.v1.dependencies import get_db
+from app.api.v1.items.item_controller import create_item
+from app.api.v1.users.user_schemas import Token, User, UserRequest
+from app.api.v1.users.user_service import UserService
+
 
 router = APIRouter()
 
-@router.post("/signup", response_model=user_schema.User)
-def signup(user: user_schema.UserCreate, db: Session = Depends(get_db)):
-    return user_service.create_user(db, user)
+@router.post("/signup", response_model=User)
+def signup(user: UserRequest, db: Session = Depends(get_db)):
+    return create_item(db, user)
 
-@router.post("/login", response_model=user_schema.Token)
-def login(user: user_schema.UserLogin, db: Session = Depends(get_db)):
-    user = user_service.authenticate_user(db, user)
+@router.post("/login", response_model=Token)
+def login(user: UserRequest, db: Session = Depends(get_db)):
+    user = UserService.authenticate_user(db, user)
     if not user:
         raise HTTPException(status_code=400, detail="Incorrect username or password")
-    return user_service.create_access_token(user)
+    return UserService.create_access_token(user)
