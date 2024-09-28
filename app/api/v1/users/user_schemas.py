@@ -1,4 +1,15 @@
-from pydantic import BaseModel
+from typing import Optional
+
+from pydantic import BaseModel, EmailStr
+
+
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
+    cpf: Optional[str] = None
+    cnpj: Optional[str] = None
+    chave_pix: Optional[str] = None
 
 
 class UserRequest(BaseModel):
@@ -11,7 +22,7 @@ class User(BaseModel):
     username: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Token(BaseModel):
