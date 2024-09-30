@@ -1,10 +1,16 @@
+import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
 from jose import jwt
 from passlib.context import CryptContext
 
-SECRET_KEY = "your_secret_key"
+# Pega a URL do banco de dados do arquivo .env
+SECRET_KEY = os.getenv("SECRET_KEY")
+
+if SECRET_KEY is None:
+    raise ValueError("A variável de ambiente SECRET_KEY não está definida.")
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
