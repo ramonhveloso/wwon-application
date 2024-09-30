@@ -11,7 +11,6 @@ router = APIRouter()
 # Registro de novo usuário
 @router.post("/auth/signup", response_model=User)
 def post_signup(user: UserCreate, db: Session = Depends(get_db)):
-    print(user)
     return UserService.create_user(db, user)
 
 
