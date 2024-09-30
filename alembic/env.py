@@ -1,8 +1,20 @@
+import os
 from logging.config import fileConfig
 
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
 from alembic import context
+
+# Carrega o arquivo .env
+load_dotenv()
+
+# Pega a URL do banco de dados do arquivo .env
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if DATABASE_URL is None:
+    raise ValueError("A variável de ambiente DATABASE_URL não está definida.")
+
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,11 +25,20 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
+# Define a URL do banco de dados dinamicamente no contexto do Alembic
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
+
 # add your model's MetaData object here
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+# target_metadata = None
+
+# Importe o seu modelo para o autogenerate
+from app.db.base import Base
+
+# Faz a conexão com o banco de dados e define as opções de configuração de migração
+target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
