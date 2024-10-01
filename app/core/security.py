@@ -2,7 +2,8 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import HTTPException
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
@@ -16,6 +17,9 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# Configuração do OAuth2
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 
 # Função para verificar se a senha em texto puro é equivalente à senha hash armazenada
@@ -53,3 +57,12 @@ def decode_access_token(token: str):
     except JWTError:
         # Se houver um erro na decodificação, lança uma exceção de autenticação inválida
         raise HTTPException(status_code=401, detail="Invalid token or expired token")
+
+
+# Função para obter o usuário atual a partir do token
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    payload = decode_access_token(token)
+    username = payload.get("sub")  # 'sub' é o campo padrão que contém o nome de usuário
+    if username is None:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    return username
