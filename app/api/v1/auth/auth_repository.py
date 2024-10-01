@@ -1,10 +1,12 @@
 # app/repositories/auth_repository.py
 
 from sqlalchemy.orm import Session
-from app.db.models.user import User
-from app.db.models.blacklist import TokenBlacklist
-from app.core.security import decode_access_token
+
 from app.api.v1.users.user_schemas import UserCreate
+from app.core.security import decode_access_token
+from app.db.models.blacklist import TokenBlacklist
+from app.db.models.user import User
+
 
 class AuthRepository:
     def create_user(self, db: Session, user: UserCreate):
@@ -41,4 +43,7 @@ class AuthRepository:
 
     def is_token_blacklisted(self, db: Session, token_id: str) -> bool:
         """Verificar se um token está na blacklist."""
-        return db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first() is not None
+        return (
+            db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first()
+            is not None
+        )

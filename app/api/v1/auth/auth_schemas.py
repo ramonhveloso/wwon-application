@@ -4,6 +4,7 @@ from pydantic import BaseModel, EmailStr
 
 from app.api.v1.users.user_schemas import UserCreate
 
+
 class AuthCreateUser(UserCreate):
     pass
 

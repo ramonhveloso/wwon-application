@@ -1,11 +1,14 @@
 from datetime import timedelta
+
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
+
 from app.api.v1.auth.auth_repository import AuthRepository
 from app.api.v1.auth.auth_schemas import AuthRequest
-from app.api.v1.users.user_schemas import UserCreate, UserRequest
-from app.core.security import create_access_token, verify_password, get_password_hash
+from app.api.v1.users.user_schemas import UserCreate
 from app.core.mailer import send_password_reset_email
-from fastapi import Depends, HTTPException
+from app.core.security import create_access_token, get_password_hash, verify_password
+
 
 class AuthService:
     def __init__(self, auth_repository: AuthRepository = Depends()):
@@ -45,7 +48,9 @@ class AuthService:
         user = self.auth_repository.get_user_by_email(db, email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        reset_token = create_access_token({"sub": email}, expires_delta=timedelta(minutes=30))
+        reset_token = create_access_token(
+            {"sub": email}, expires_delta=timedelta(minutes=30)
+        )
         send_password_reset_email(user.email, reset_token)
 
     def reset_password(self, token: str, new_password: str, db: Session):
@@ -56,7 +61,9 @@ class AuthService:
         hashed_password = get_password_hash(new_password)
         self.auth_repository.update_password(db, email, hashed_password)
 
-    def change_password(self, email: str, old_password: str, new_password: str, db: Session):
+    def change_password(
+        self, email: str, old_password: str, new_password: str, db: Session
+    ):
         # Alterar a senha do usuário autenticado
         user = self.auth_repository.get_user_by_email(db, email)
         if not user or not verify_password(old_password, user.password):
