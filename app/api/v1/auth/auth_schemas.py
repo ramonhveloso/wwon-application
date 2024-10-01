@@ -2,19 +2,14 @@ from typing import Optional
 
 from pydantic import BaseModel, EmailStr
 
+from app.api.v1.users.user_schemas import UserCreate
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
+class AuthCreateUser(UserCreate):
+    pass
+
+
+class AuthRequest(BaseModel):
     email: EmailStr
-    name: str
-    cpf: Optional[str] = None
-    cnpj: Optional[str] = None
-    chave_pix: Optional[str] = None
-
-
-class UserRequest(BaseModel):
-    email: str
     password: str
 
 

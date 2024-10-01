@@ -7,6 +7,9 @@ from app.db.models.user import User
 
 
 class UserService:
+    def __init__(self, UserRepository) -> None:
+        pass
+
     @staticmethod
     def create_user(db: Session, user: UserCreate):
         hashed_password = get_password_hash(user.password)
@@ -23,14 +26,14 @@ class UserService:
 
     @staticmethod
     def authenticate_user(db: Session, user: UserRequest):
-        db_user = UserRepository.get_user_by_username(db, username=user.username)
+        db_user = UserRepository.get_user_by_email(db, email=user.email)
         if db_user and verify_password(user.password, db_user.hashed_password):
             return db_user
         return False
 
     @staticmethod
     def create_access_token(user: UserRequest):
-        return create_access_token(data={"sub": user.username})
+        return create_access_token(data={"sub": user.email})
 
     @staticmethod
     def get_all_users(db: Session):
