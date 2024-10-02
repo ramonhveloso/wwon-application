@@ -15,5 +15,7 @@ class User(Base):
     cnpj = Column(String, unique=True, index=True)
     chave_pix = Column(String, unique=True, index=True)
     is_active = Column(Boolean, default=True)
+    is_superuser = Column(Boolean, default=False)
     reset_pin = Column(String, nullable=True) 
     reset_pin_expiration = Column(DateTime, nullable=True) 
+    
