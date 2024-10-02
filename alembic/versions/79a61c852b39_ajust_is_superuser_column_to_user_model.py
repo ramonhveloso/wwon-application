@@ -1,15 +1,20 @@
-"""Initial migration
+"""Ajust is_superuser column to User model
 
-Revision ID: 1e25a0bfd612
+Revision ID: 79a61c852b39
 Revises: 
-Create Date: 2024-09-30 14:35:56.219844
+Create Date: 2024-10-02 16:18:28.458852
 
 """
-
 from typing import Sequence, Union
 
+import sqlalchemy as sa
+
+from alembic import op
+
+
+
 # revision identifiers, used by Alembic.
-revision: str = "1e25a0bfd612"
+revision: str = '79a61c852b39'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
