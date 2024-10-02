@@ -1,5 +1,6 @@
 # app/repositories/auth_repository.py
 
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 
 from app.api.v1.users.user_schemas import UserCreate
@@ -32,7 +33,7 @@ class AuthRepository:
 
     async def update_password(self, db: Session, email: str, new_password: str):
         """Atualizar a senha do usuário."""
-        user = self.get_user_by_email(db, email)
+        user = db.query(User).filter(User.email == email).first()
         if user:
             user.password = new_password
             db.commit()
@@ -56,3 +57,25 @@ class AuthRepository:
             db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first()
             is not None
         )
+    
+    async def save_pin(self, db: Session, user_id: int, pin: str, expiration: datetime):
+        user = db.query(User).filter(User.id == user_id).first()
+        user.reset_pin = pin
+        user.reset_pin_expiration = expiration
+        db.add(user)
+        db.commit()
+
+
+    async def verify_pin(self, db: Session, email: str, pin: str):
+        """Lógica para verificar o PIN no banco de dados"""
+        user = db.query(User).filter(User.email == email).first()
+
+        if user:
+            if user.reset_pin == pin:
+                # Verifica se o PIN não está expirado
+                if user.reset_pin_expiration >= datetime.now(timezone.utc):
+                    return {"email": user.email, "expiration": user.reset_pin_expiration}
+                return {"error": "PIN has expired"}
+            return {"error": "Invalid PIN"}
+        
+        return {"error": "User not found"}

@@ -6,6 +6,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+import pytz
 
 # Pega a chave secreta da variável de ambiente
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -14,7 +15,7 @@ if SECRET_KEY is None:
     raise ValueError("A variável de ambiente SECRET_KEY não está definida.")
 
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -51,7 +52,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 # Função para decodificar e validar um token JWT
 def decode_access_token(token: str):
     try:
-        # Decodifica o token e valida o algoritmo utilizado
+        # Certifique-se de passar o algoritmo como uma lista
         payload = jwt.decode(token, str(SECRET_KEY), algorithms=[ALGORITHM])
         return payload
     except JWTError:

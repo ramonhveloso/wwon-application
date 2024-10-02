@@ -1,13 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth.auth_repository import AuthRepository
 from app.api.v1.auth.auth_schemas import (
-    GetMeRequest,
     GetMeResponse,
     PostForgotPasswordRequest,
     PostForgotPasswordResponse,
-    PostLoginRequest,
     PostLoginResponse,
     PostLogoutRequest,
     PostLogoutResponse,
@@ -19,14 +18,14 @@ from app.api.v1.auth.auth_schemas import (
     PutChangePasswordResponse,
 )
 from app.api.v1.auth.auth_service import AuthService
-from app.api.v1.dependencies import get_db
+from app.api.v1.dependencies import get_db, token_verifier
 
 router = APIRouter()
 auth_service = AuthService(AuthRepository())
 
 
 # Registro de novo usuário
-@router.post("/signup")
+@router.post("/signup", status_code=status.HTTP_201_CREATED)
 async def post_signup(
     data: PostSignUpRequest, db: Session = Depends(get_db)
 ) -> PostSignUpResponse:
@@ -37,11 +36,9 @@ async def post_signup(
 # Login do usuário
 @router.post("/login")
 async def post_login(
-    data: PostLoginRequest, db: Session = Depends(get_db)
+    data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)
 ) -> PostLoginResponse:
     authenticated_user = await auth_service.authenticate_user(db=db, data=data)
-    if not authenticated_user:
-        raise HTTPException(status_code=400, detail="Incorrect username or password")
     response_service = auth_service.create_access_token(authenticated_user)
     return PostLoginResponse.model_validate(response_service)
 
@@ -73,7 +70,7 @@ async def post_reset_password(
     return PostResetPasswordResponse.model_validate(response_service)
 
 
-# # Alterar senha
+# Alterar senha
 @router.put("/change-password")
 async def put_change_password(
     data: PutChangePasswordRequest,
@@ -85,6 +82,6 @@ async def put_change_password(
 
 # Verificar dados do usuário autenticado
 @router.get("/me")
-async def get_me(data: GetMeRequest, db: Session = Depends(get_db)) -> GetMeResponse:
-    response_service = await AuthService.get_authenticated_user(db=db, data=data)
-    return None
+async def get_me(email: str = Depends(token_verifier), db: Session = Depends(get_db)) -> GetMeResponse:
+    response_service = await auth_service.get_authenticated_user(db=db, email=email)
+    return GetMeResponse.model_validate(response_service)

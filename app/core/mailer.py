@@ -2,12 +2,11 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 from fastapi import HTTPException
 
 # Configurações do servidor de e-mail
 SMTP_SERVER = os.getenv("SMTP_SERVER")  # Endereço do servidor SMTP
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587))  # Porta do servidor SMTP
+SMTP_PORT = int(os.getenv("SMTP_PORT", 465))  # Porta do servidor SMTP
 SMTP_USERNAME = os.getenv("SMTP_USERNAME")  # Nome de usuário do e-mail
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")  # Senha do e-mail
 
@@ -17,34 +16,43 @@ if not all([SMTP_SERVER, SMTP_USERNAME, SMTP_PASSWORD]):
     )
 
 
-def send_password_reset_email(to_email: str, reset_link: str):
-    """Envia um e-mail de redefinição de senha para o usuário."""
+async def send_pin_email(to_email: str, pin: str):
+    """Envia um e-mail com o PIN de recuperação de senha."""
 
     # Cria o objeto da mensagem
     msg = MIMEMultipart()
     msg["From"] = str(SMTP_USERNAME)
     msg["To"] = to_email
-    msg["Subject"] = "Redefinição de Senha"
+    msg["Subject"] = "Seu código de recuperação de senha"
 
-    # Cria o corpo do e-mail em HTML
+    # Template moderno em HTML para o e-mail
     body = f"""
     <html>
-        <body>
-            <h2>Redefinição de Senha</h2>
-            <p>Olá,</p>
-            <p>Você solicitou a redefinição da sua senha. Clique no botão abaixo para redefini-la:</p>
-            <p style="text-align:center;">
-                <a href="{reset_link}" style="
-                    padding: 10px 20px; 
-                    background-color: #007BFF; 
-                    color: white; 
-                    text-decoration: none; 
-                    border-radius: 5px;">
-                    Redefinir Senha
-                </a>
-            </p>
-            <p>Se você não solicitou essa alteração, pode ignorar este e-mail.</p>
-            <p>Atenciosamente,<br>Sua Equipe</p>
+        <body style="font-family: Arial, sans-serif; background-color: #f4f4f9; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+                <h2 style="text-align: center; color: #333333;">Código de Recuperação de Senha</h2>
+                <p style="font-size: 16px; color: #555555;">Olá,</p>
+                <p style="font-size: 16px; color: #555555;">
+                    Você solicitou a recuperação da sua senha. Use o código abaixo para redefini-la:
+                </p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <span style="
+                        display: inline-block;
+                        font-size: 22px;
+                        color: #ffffff;
+                        background-color: #007BFF;
+                        padding: 15px 30px;
+                        border-radius: 5px;
+                        font-weight: bold;
+                        letter-spacing: 2px;">
+                        {pin}
+                    </span>
+                </div>
+                <p style="font-size: 16px; color: #555555;">
+                    Este código é válido por 5 minutos. Se você não solicitou essa alteração, por favor, ignore este e-mail.
+                </p>
+                <p style="font-size: 16px; color: #555555;">Atenciosamente,<br>Automageo</p>
+            </div>
         </body>
     </html>
     """
@@ -53,11 +61,12 @@ def send_password_reset_email(to_email: str, reset_link: str):
 
     try:
         # Conecta ao servidor SMTP e envia o e-mail
-        with smtplib.SMTP(str(SMTP_SERVER), SMTP_PORT) as server:
-            server.starttls()  # Ativa a segurança TLS
-            server.login(
-                str(SMTP_USERNAME), str(SMTP_PASSWORD)
-            )  # Faz login no servidor
-            server.send_message(msg)  # Envia a mensagem
-    except Exception as e:
-        raise HTTPException(status_code=500, detail="Failed to send email: " + str(e))
+        with smtplib.SMTP_SSL(str(SMTP_SERVER), SMTP_PORT) as server:
+            server.login(str(SMTP_USERNAME), str(SMTP_PASSWORD))
+            server.send_message(msg, to_addrs=to_email)
+    except smtplib.SMTPAuthenticationError:
+        raise HTTPException(status_code=401, detail="Authentication failed")
+    except smtplib.SMTPRecipientsRefused:
+        raise HTTPException(status_code=400, detail="Invalid email address")
+    except smtplib.SMTPException as e:
+        raise HTTPException(status_code=503, detail="Email service unavailable: " + str(e))

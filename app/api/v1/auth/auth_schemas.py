@@ -62,7 +62,8 @@ class PostForgotPasswordResponse(Response):
 
 
 class PostResetPasswordRequest(BaseModel):
-    token: str
+    email: str
+    pin: str
     new_password: str
 
     class Config:

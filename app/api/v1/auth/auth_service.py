@@ -1,25 +1,26 @@
-from datetime import timedelta
-
+from datetime import datetime, timedelta, timezone
+import random
+import string
+from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.v1.auth.auth_repository import AuthRepository
 from app.api.v1.auth.auth_schemas import (
-    GetMeRequest,
     GetMeResponse,
     PostForgotPasswordRequest,
     PostForgotPasswordResponse,
-    PostLoginRequest,
     PostLoginResponse,
     PostLogoutRequest,
     PostLogoutResponse,
     PostResetPasswordRequest,
+    PostResetPasswordResponse,
     PostSignUpRequest,
     PostSignUpResponse,
     PutChangePasswordRequest,
     PutChangePasswordResponse,
 )
-from app.core.mailer import send_password_reset_email
+from app.core.mailer import send_pin_email
 from app.core.security import create_access_token, get_password_hash, verify_password
 
 
@@ -32,7 +33,12 @@ class AuthService:
     ) -> PostSignUpResponse:
         hashed_password = get_password_hash(password=data.password)
         data.password = hashed_password
-        response_repository = await self.auth_repository.create_user(db, data)
+        try:
+            response_repository = await self.auth_repository.create_user(db, data)
+        except:
+            # Lança uma exceção HTTP com status 409 se ocorrer um erro específico
+            raise HTTPException(status_code=409, detail=f"Conflict")
+
         return PostSignUpResponse(
             username=response_repository.username,
             email=response_repository.email,
@@ -42,12 +48,14 @@ class AuthService:
             chave_pix=response_repository.chave_pix,
         )
 
-    async def authenticate_user(self, db: Session, data: PostLoginRequest):
+    async def authenticate_user(self, db: Session, data: OAuth2PasswordRequestForm):
         # Autenticar o usuário com e-mail e senha
-        db_user = await self.auth_repository.get_user_by_email(db, data.email)
+        db_user = await self.auth_repository.get_user_by_email(db, data.username)
         if db_user and verify_password(data.password, db_user.password):
             return db_user
-        return None
+        if not db_user:
+            raise HTTPException(status_code=400, detail="Incorrect username or password")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
     def create_access_token(self, user) -> PostLoginResponse:
         # Criar token de acesso para o usuário
@@ -66,10 +74,10 @@ class AuthService:
         await self.auth_repository.add_token(db, data.token)
         return PostLogoutResponse(message="Successfully logged out")
 
-    def is_token_blacklisted(self, db: Session, token: str) -> bool:
+    async def is_token_blacklisted(self, db: Session, token: str) -> bool:
         """Verifica se um token está na blacklist."""
         token_id = self.auth_repository.verify_token(token)
-        return self.auth_repository.is_token_blacklisted(db, token_id)
+        return await self.auth_repository.is_token_blacklisted(db, token_id)
 
     async def forgot_password(
         self, db: Session, data: PostForgotPasswordRequest
@@ -78,19 +86,44 @@ class AuthService:
         user = await self.auth_repository.get_user_by_email(db, data.email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
-        reset_token = create_access_token(
-            {"sub": data.email}, expires_delta=timedelta(minutes=30)
-        )
-        send_password_reset_email(user.email, reset_token)
-        PostForgotPasswordResponse(message="Password reset link sent to email")
+       
+        # Gerar PIN de 6 dígitos
+        pin = ''.join(random.choices(string.digits, k=6))
 
-    async def reset_password(self, data: PostResetPasswordRequest, db: Session):
-        # Resetar a senha com base no token
-        email = await self.auth_repository.verify_token(data.token)
-        if not email:
-            raise HTTPException(status_code=400, detail="Invalid or expired token")
+        # Definir o tempo de expiração do PIN (ex: 30 minutos)
+        pin_expiration = datetime.now(timezone.utc) + timedelta(minutes=5)
+
+        # Armazenar o PIN e sua expiração no banco de dados
+        await self.auth_repository.save_pin(db, user.id, pin, pin_expiration)
+
+        # Enviar o PIN por e-mail
+        await send_pin_email(user.email, pin)
+
+        return PostForgotPasswordResponse(message="PIN sent to email")
+
+    async def reset_password(self, data: PostResetPasswordRequest, db: Session) -> PostResetPasswordResponse:
+        # Verificar se o PIN é válido
+        pin_validation_result = await self.auth_repository.verify_pin(db=db, email=data.email, pin=data.pin)
+
+        # Verifica o resultado da validação do PIN
+        if "error" in pin_validation_result:
+            # Lança a exceção apropriada com base na mensagem de erro
+            error_detail = pin_validation_result["error"]
+            
+            if error_detail == "Invalid PIN":
+                raise HTTPException(status_code=400, detail="The provided PIN is invalid.")
+            elif error_detail == "PIN has expired":
+                raise HTTPException(status_code=400, detail="The provided PIN has expired.")
+            elif error_detail == "User not found":
+                raise HTTPException(status_code=404, detail="User not found.")
+            
+        # Se o PIN for válido, hash a nova senha
         hashed_password = get_password_hash(data.new_password)
-        self.auth_repository.update_password(db, email, hashed_password)
+
+        # Atualizar a senha no repositório
+        await self.auth_repository.update_password(db, data.email, hashed_password)
+
+        return PostResetPasswordResponse(message= "Password reset successfully.")
 
     async def change_password(
         self, data: PutChangePasswordRequest, db: Session
@@ -105,10 +138,9 @@ class AuthService:
         return PutChangePasswordResponse(message="Password changed successfully")
 
     async def get_authenticated_user(
-        self, data: GetMeRequest, db: Session
+        self, email: str, db: Session
     ) -> GetMeResponse:
         # Obter informações do usuário autenticado com base no token
-        email = self.auth_repository.verify_token(data.token)
         if not email:
             raise HTTPException(status_code=401, detail="Invalid token")
         user = await self.auth_repository.get_user_by_email(db, email)
