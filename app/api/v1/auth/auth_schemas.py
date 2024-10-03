@@ -81,19 +81,6 @@ class PostLoginResponse(BaseModel):
         return cls(**data)
 
 
-class PostLogoutRequest(BaseModel):
-    token: str
-
-    class Config:
-        from_attributes = True
-
-    @classmethod
-    def model_validate(cls, data):
-        if isinstance(data, cls):
-            data = data.model_dump()
-        return cls(**data)
-
-
 class PostLogoutResponse(Response):
     pass
 

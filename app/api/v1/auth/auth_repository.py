@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+from datetime import datetime
+import random
 
 from sqlalchemy.orm import Session
 
@@ -60,6 +61,10 @@ class AuthRepository:
             db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first()
             is not None
         )
+    
+    def generate_pin(self):
+        """Gera um PIN de 6 dígitos."""
+        return "".join([str(random.randint(0, 9)) for _ in range(6)])
 
     async def save_pin(self, db: Session, user_id: int, pin: str, expiration: datetime):
         user = db.query(User).filter(User.id == user_id).first()
@@ -74,7 +79,7 @@ class AuthRepository:
 
         if user:
             if user.reset_pin == pin:
-                if user.reset_pin_expiration >= datetime.now(timezone.utc):
+                if user.reset_pin_expiration >= datetime.now():
                     return {
                         "email": user.email,
                         "expiration": user.reset_pin_expiration,

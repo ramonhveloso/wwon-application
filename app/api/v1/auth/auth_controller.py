@@ -10,7 +10,6 @@ from app.api.v1.auth.auth_schemas import (
     PostForgotPasswordRequest,
     PostForgotPasswordResponse,
     PostLoginResponse,
-    PostLogoutRequest,
     PostLogoutResponse,
     PostResetPasswordRequest,
     PostResetPasswordResponse,
@@ -48,9 +47,10 @@ async def post_login(
 # Logout do usuário
 @router.post("/logout")
 async def post_logout(
-    data: PostLogoutRequest, db: Session = Depends(get_db)
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
+    db: Session = Depends(get_db)
 ) -> PostLogoutResponse:
-    response_service = await auth_service.logout(db=db, data=data)
+    response_service = await auth_service.logout(db=db, authuser=authuser)
     return PostLogoutResponse.model_validate(response_service)
 
 

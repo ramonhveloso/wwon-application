@@ -1,6 +1,4 @@
-import random
-import string
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -12,7 +10,6 @@ from app.api.v1.auth.auth_schemas import (
     PostForgotPasswordRequest,
     PostForgotPasswordResponse,
     PostLoginResponse,
-    PostLogoutRequest,
     PostLogoutResponse,
     PostResetPasswordRequest,
     PostResetPasswordResponse,
@@ -70,12 +67,11 @@ class AuthService:
         }
         return PostLoginResponse(**response)
 
-    async def logout(self, db: Session, data: PostLogoutRequest) -> PostLogoutResponse:
+    async def logout(self, db: Session, authuser: AuthUser) -> PostLogoutResponse:
         # Logout do usuário, adicionando o token à blacklist
-        authuser = await self.auth_repository.verify_token(data.token)
-        if authuser.token_id is None:
+        if authuser.token is None:
             raise HTTPException(status_code=400, detail="Invalid token")
-        await self.auth_repository.add_token(db, data.token)
+        await self.auth_repository.add_token(db, authuser.token)
         return PostLogoutResponse(message="Successfully logged out")
 
     async def is_token_blacklisted(self, db: Session, token: str) -> bool:
@@ -88,18 +84,18 @@ class AuthService:
     async def forgot_password(
         self, db: Session, data: PostForgotPasswordRequest
     ) -> PostForgotPasswordResponse:
-        # Enviar email com link para reset de senha
+        # Envia email com o pin para reset de senha
         user = await self.auth_repository.get_user_by_email(db, data.email)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 
         # Gerar PIN de 6 dígitos
-        pin = "".join(random.choices(string.digits, k=6))
+        pin = self.auth_repository.generate_pin()
+        
+        # Define o tempo de expiração do PIN
+        pin_expiration = datetime.now() + timedelta(minutes=5)
 
-        # Definir o tempo de expiração do PIN (ex: 30 minutos)
-        pin_expiration = datetime.now(timezone.utc) + timedelta(minutes=5)
-
-        # Armazenar o PIN e sua expiração no banco de dados
+        # Armazena o PIN e sua expiração no banco de dados
         await self.auth_repository.save_pin(db, user.id, pin, pin_expiration)
 
         # Enviar o PIN por e-mail
