@@ -1,16 +1,15 @@
-# app/repositories/auth_repository.py
-
 from datetime import datetime, timezone
+
 from sqlalchemy.orm import Session
 
-from app.api.v1.users.user_schemas import UserCreate
+from app.api.v1.auth.auth_schemas import PostSignUpRequest
 from app.core.security import decode_access_token
 from app.db.models.blacklist import TokenBlacklist
 from app.db.models.user import User
 
 
 class AuthRepository:
-    async def create_user(self, db: Session, data: UserCreate) -> User:
+    async def create_user(self, db: Session, data: PostSignUpRequest):
         """Criação do usuário no banco de dados."""
         db_user = User(
             username=data.username,
@@ -35,7 +34,7 @@ class AuthRepository:
         """Atualizar a senha do usuário."""
         user = db.query(User).filter(User.email == email).first()
         if user:
-            user.password = new_password
+            user.password = new_password  # type: ignore
             db.commit()
 
     async def verify_token(self, token: str):
@@ -57,14 +56,13 @@ class AuthRepository:
             db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first()
             is not None
         )
-    
+
     async def save_pin(self, db: Session, user_id: int, pin: str, expiration: datetime):
         user = db.query(User).filter(User.id == user_id).first()
-        user.reset_pin = pin
-        user.reset_pin_expiration = expiration
+        user.reset_pin = pin  # type: ignore
+        user.reset_pin_expiration = expiration  # type: ignore
         db.add(user)
         db.commit()
-
 
     async def verify_pin(self, db: Session, email: str, pin: str):
         """Lógica para verificar o PIN no banco de dados"""
@@ -72,10 +70,12 @@ class AuthRepository:
 
         if user:
             if user.reset_pin == pin:
-                # Verifica se o PIN não está expirado
                 if user.reset_pin_expiration >= datetime.now(timezone.utc):
-                    return {"email": user.email, "expiration": user.reset_pin_expiration}
+                    return {
+                        "email": user.email,
+                        "expiration": user.reset_pin_expiration,
+                    }
                 return {"error": "PIN has expired"}
             return {"error": "Invalid PIN"}
-        
+
         return {"error": "User not found"}

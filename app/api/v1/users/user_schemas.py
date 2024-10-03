@@ -1,40 +1,123 @@
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr
 
 
-class UserCreate(BaseModel):
-    username: str
-    password: str
+# Obter perfil do usuário autenticado
+class GetUsersMeResponse(BaseModel):
+    id: int
     email: EmailStr
     name: str
-    cpf: Optional[str] = None
-    cnpj: Optional[str] = None
-    chave_pix: Optional[str] = None
-
-
-class UserRequest(BaseModel):
-    email: str
-    password: str
-
-
-class User(BaseModel):
-    id: int
-    username: str
 
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
-class ResponseGetUsersMe(BaseModel):
-    username: str
+
+# Atualizar perfil do usuário autenticado
+class PutUsersMeRequest(BaseModel):
+    name: Optional[str]
+    email: Optional[EmailStr]
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+class PutUsersMeResponse(BaseModel):
+    id: int
     email: EmailStr
     name: str
-    cpf: Optional[str] = None
-    cnpj: Optional[str] = None
-    chave_pix: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+# (Admin) Listar usuários
+class User(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+class GetUsersResponse(BaseModel):
+    users: List[User]
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+# Ver perfil de um usuário específico
+class GetUserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+# Atualizar dados de um usuário específico
+class PutUserRequest(BaseModel):
+    name: Optional[str]
+    email: Optional[EmailStr]
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+class PutUserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
+
+# Excluir um usuário específico
+class DeleteUserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    name: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.auth.auth_repository import AuthRepository
 from app.api.v1.auth.auth_schemas import (
-    GetMeResponse,
+    GetAuthMeResponse,
     PostForgotPasswordRequest,
     PostForgotPasswordResponse,
     PostLoginResponse,
@@ -82,6 +82,8 @@ async def put_change_password(
 
 # Verificar dados do usuário autenticado
 @router.get("/me")
-async def get_me(email: str = Depends(token_verifier), db: Session = Depends(get_db)) -> GetMeResponse:
+async def get_me(
+    email: str = Depends(token_verifier), db: Session = Depends(get_db)
+) -> GetAuthMeResponse:
     response_service = await auth_service.get_authenticated_user(db=db, email=email)
-    return GetMeResponse.model_validate(response_service)
+    return GetAuthMeResponse.model_validate(response_service)

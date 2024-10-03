@@ -3,12 +3,14 @@
     "configurations": [
         {
             "name": "Python: Uvicorn",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/.venv/bin/uvicorn",
             "args": [
                 "app.main:app",
-                "--reload"
+                "--reload",
+                "--port",
+                "${input:port}"
             ],
             "env": {
                 "ENVIRONMENT": "env"
@@ -16,5 +18,14 @@
             "console": "integratedTerminal",
             "justMyCode": true
         }
-    ]
+    ],
+    "inputs": 
+    [
+        {
+        "id": "port",
+        "type": "promptString",
+        "description": "Select the port to run the server on",
+        "default": "8000"
+        }
+    ],
 }

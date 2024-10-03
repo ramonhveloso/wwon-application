@@ -2,6 +2,7 @@ import os
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 from fastapi import HTTPException
 
 # Configurações do servidor de e-mail
@@ -69,4 +70,6 @@ async def send_pin_email(to_email: str, pin: str):
     except smtplib.SMTPRecipientsRefused:
         raise HTTPException(status_code=400, detail="Invalid email address")
     except smtplib.SMTPException as e:
-        raise HTTPException(status_code=503, detail="Email service unavailable: " + str(e))
+        raise HTTPException(
+            status_code=503, detail="Email service unavailable: " + str(e)
+        )

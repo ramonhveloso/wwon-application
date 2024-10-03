@@ -1,44 +1,89 @@
+from typing import List
+
+from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.api.v1.users.user_repository import UserRepository
-from app.api.v1.users.user_schemas import UserCreate, UserRequest
-from app.core.security import create_access_token, get_password_hash, verify_password
+from app.api.v1.users.user_schemas import (
+    DeleteUserResponse,
+    GetUserResponse,
+    GetUsersMeResponse,
+    PutUserRequest,
+    PutUserResponse,
+    PutUsersMeRequest,
+    PutUsersMeResponse,
+)
 from app.db.models.user import User
 
 
 class UserService:
-    def __init__(self, UserRepository) -> None:
-        pass
+    def __init__(self, user_repository: UserRepository = Depends()):
+        self.user_repository = user_repository
 
-    @staticmethod
-    def create_user(db: Session, user: UserCreate):
-        hashed_password = get_password_hash(user.password)
-        db_user = User(
-            username=user.username,
-            hashed_password=hashed_password,
-            email=user.email,
-            cpf=user.cpf,
-            cnpj=user.cnpj,
-            chave_pix=user.chave_pix,
-            is_active=True,
+    async def get_authenticated_user(
+        self, db: Session, email: str
+    ) -> GetUsersMeResponse:
+        user = await self.user_repository.get_user_by_email(db, email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return GetUsersMeResponse(
+            id=int(user.id),
+            email=str(user.email),
+            name=str(user.name),
         )
-        return UserRepository.create_user(db, db_user)
 
-    @staticmethod
-    def authenticate_user(db: Session, user: UserRequest):
-        db_user = UserRepository.get_user_by_email(db, email=user.email)
-        if db_user and verify_password(user.password, db_user.hashed_password):
-            return db_user
-        return False
+    async def update_user_profile(
+        self, db: Session, email: str, data: PutUsersMeRequest
+    ) -> PutUsersMeResponse:
+        user = await self.user_repository.get_user_by_email(db, email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
 
-    @staticmethod
-    def create_access_token(user: UserRequest):
-        return create_access_token(data={"sub": user.email})
+        # Atualizar o perfil do usuário
+        updated_user = await self.user_repository.update_user_profile(db, user, data)
+        return PutUsersMeResponse(
+            id=updated_user.id,
+            email=updated_user.email,
+            name=updated_user.name,
+        )
 
-    @staticmethod
-    def get_all_users(db: Session):
-        return db.query(User).all()
+    async def get_all_users(self, db: Session) -> List[User]:
+        users = await self.user_repository.get_all_users(db)
+        return [
+            User(id=user.id, email=user.email, name=user.name, is_active=user.is_active)
+            for user in users
+        ]
 
-    @staticmethod
-    def get_user_by_id(db: Session, user_id: int):
-        return db.query(User).filter(User.id == user_id).first()
+    async def get_user_by_id(self, db: Session, user_id: int) -> GetUserResponse:
+        user = await self.user_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        return GetUserResponse(id=user.id, email=user.email, name=user.name)
+
+    async def update_user(
+        self, db: Session, user_id: int, data: PutUserRequest
+    ) -> PutUserResponse:
+        user = await self.user_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Atualizar dados do usuário
+        updated_user = await self.user_repository.update_user(db, user, data)
+        return PutUserResponse(
+            id=updated_user.id,
+            email=updated_user.email,
+            name=updated_user.name,
+        )
+
+    async def delete_user(self, db: Session, user_id: int) -> DeleteUserResponse:
+        user = await self.user_repository.get_user_by_id(db, user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Excluir usuário
+        deleted_user = await self.user_repository.delete_user(db, user)
+        return DeleteUserResponse(
+            id=deleted_user.id,
+            email=deleted_user.email,
+            name=deleted_user.name,
+        )

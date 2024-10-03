@@ -6,7 +6,6 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-import pytz
 
 # Pega a chave secreta da variável de ambiente
 SECRET_KEY = os.getenv("SECRET_KEY")

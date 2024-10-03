@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-import pytz
 from sqlalchemy import Column, DateTime, String
 
 from app.db.base import Base

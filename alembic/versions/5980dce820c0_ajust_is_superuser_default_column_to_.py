@@ -5,17 +5,12 @@ Revises: 79a61c852b39
 Create Date: 2024-10-02 16:19:13.797270
 
 """
+
 from typing import Sequence, Union
 
-import sqlalchemy as sa
-
-from alembic import op
-
-
-
 # revision identifiers, used by Alembic.
-revision: str = '5980dce820c0'
-down_revision: Union[str, None] = '79a61c852b39'
+revision: str = "5980dce820c0"
+down_revision: Union[str, None] = "79a61c852b39"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

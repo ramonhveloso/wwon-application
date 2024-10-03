@@ -9,6 +9,10 @@ class Response(BaseModel):
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PostSignUpRequest(BaseModel):
     username: str
@@ -19,6 +23,13 @@ class PostSignUpRequest(BaseModel):
     cnpj: Optional[str] = None
     chave_pix: Optional[str] = None
 
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PostSignUpResponse(BaseModel):
     username: str
@@ -28,10 +39,24 @@ class PostSignUpResponse(BaseModel):
     cnpj: Optional[str] = None
     chave_pix: Optional[str] = None
 
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PostLoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
 
 class PostLoginResponse(BaseModel):
@@ -41,9 +66,20 @@ class PostLoginResponse(BaseModel):
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PostLogoutRequest(BaseModel):
     token: str
+
+    class Config:
+        from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
 
 class PostLogoutResponse(Response):
@@ -55,6 +91,10 @@ class PostForgotPasswordRequest(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
 
 class PostForgotPasswordResponse(Response):
@@ -69,6 +109,10 @@ class PostResetPasswordRequest(BaseModel):
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PostResetPasswordResponse(Response):
     pass
@@ -82,6 +126,10 @@ class PutChangePasswordRequest(BaseModel):
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
+
 
 class PutChangePasswordResponse(Response):
     pass
@@ -93,8 +141,12 @@ class GetMeRequest(BaseModel):
     class Config:
         from_attributes = True
 
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
 
-class GetMeResponse(BaseModel):
+
+class GetAuthMeResponse(BaseModel):
     username: str
     email: EmailStr
     name: str
@@ -104,3 +156,7 @@ class GetMeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+    @classmethod
+    def model_validate(cls, data):
+        return cls(**data)
