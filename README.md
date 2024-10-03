@@ -1,4 +1,4 @@
-# BACKEND ERP AUTOMA
+# BACKEND
 
 ## Requisitos
 
