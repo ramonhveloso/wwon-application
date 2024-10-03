@@ -53,7 +53,7 @@ async def get_users(
     db: Session = Depends(get_db),
 ) -> GetUsersResponse:
     response_service = await user_service.get_all_users(db)
-    return GetUsersResponse(users=response_service)
+    return GetUsersResponse.model_validate(response_service)
 
 
 # Ver perfil de um usuário específico

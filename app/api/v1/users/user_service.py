@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -8,12 +6,13 @@ from app.api.v1.users.user_schemas import (
     DeleteUserResponse,
     GetUserResponse,
     GetUsersMeResponse,
+    GetUsersResponse,
     PutUserRequest,
     PutUserResponse,
     PutUsersMeRequest,
     PutUsersMeResponse,
+    User,
 )
-from app.database.models.user import User
 from app.middleware.dependencies import AuthUser
 
 
@@ -48,12 +47,13 @@ class UserService:
             name=updated_user.name,
         )
 
-    async def get_all_users(self, db: Session) -> List[User]:
+    async def get_all_users(self, db: Session) -> GetUsersResponse:
         users = await self.user_repository.get_all_users(db)
-        return [
+        users_list = [
             User(id=user.id, email=user.email, name=user.name, is_active=user.is_active)
             for user in users
         ]
+        return GetUsersResponse(users=users_list)
 
     async def get_user_by_id(self, db: Session, user_id: int) -> GetUserResponse:
         user = await self.user_repository.get_user_by_id(db, user_id)
