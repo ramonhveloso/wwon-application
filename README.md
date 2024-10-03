@@ -10,7 +10,7 @@
 
 1. **Crie uma chave SSH e clone o repositório:**
 
-   `git clone git@github.com:ramonhveloso/erp_backend.git`
+   `git clone git@github.com:ramonhveloso/wwon-application.git`
 
 2. **Instale as dependências usando Poetry:**
 
@@ -20,7 +20,7 @@
 
    Para executar o PostgreSQL usando Docker, execute o seguinte comando:
 
-   `docker run -p 5432:5432 -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=postgre -e POSTGRES_DB=desenvolvimento -d --name=automa_local postgres:14.10`
+   `docker run -p 5432:5432 -e POSTGRES_USER=admin -e POSTGRES_PASSWORD=postgre -e POSTGRES_DB=desenvolvimento -d --name=wwon_local postgres:14.10`
 
 4. **Configuração do Alembic:**
 
@@ -42,13 +42,13 @@
 
 Para parar o container do PostgreSQL, use:
 
-`docker stop automa_local`
+`docker stop wwon application_local`
 
 ## Remover o Container do PostgreSQL
 
 Para remover o container, use:
 
-`docker rm automa_local`
+`docker rm wwon application_local`
 
 ## Contribuição
 

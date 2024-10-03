@@ -52,7 +52,7 @@ async def send_pin_email(to_email: str, pin: str):
                 <p style="font-size: 16px; color: #555555;">
                     Este código é válido por 5 minutos. Se você não solicitou essa alteração, por favor, ignore este e-mail.
                 </p>
-                <p style="font-size: 16px; color: #555555;">Atenciosamente,<br>Automageo</p>
+                <p style="font-size: 16px; color: #555555;">Atenciosamente,<br>wwon applicationgeo</p>
             </div>
         </body>
     </html>
