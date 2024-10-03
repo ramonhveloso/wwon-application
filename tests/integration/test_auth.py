@@ -1,4 +1,5 @@
 from unittest.mock import patch
+
 import pytest
 
 
@@ -64,6 +65,7 @@ async def test_logout(use_test_client):
     response_json = logout_response.json()
     assert response_json["message"] == "Successfully logged out"
 
+
 @pytest.mark.asyncio
 @patch("app.core.mailer.send_pin_email")
 async def test_forgot_password(mock_send_pin_email, use_test_client):
@@ -81,11 +83,14 @@ async def test_forgot_password(mock_send_pin_email, use_test_client):
 
     # Solicitando recuperação de senha
     forgot_password_payload = {"email": "master@dev.com"}
-    forgot_password_response = use_test_client.post("/api/v1/auth/forgot-password", json=forgot_password_payload)
+    forgot_password_response = use_test_client.post(
+        "/api/v1/auth/forgot-password", json=forgot_password_payload
+    )
     assert forgot_password_response.status_code == 200
 
     response_json = forgot_password_response.json()
     assert response_json["message"] == "PIN sent to email"
+
 
 @pytest.mark.asyncio
 @patch("app.core.mailer.send_pin_email")
@@ -106,7 +111,9 @@ async def test_reset_password(mock_generate_pin, mock_send_pin_email, use_test_c
 
     # Solicitando recuperação de senha
     forgot_password_payload = {"email": "master@dev.com"}
-    forgot_password_response = use_test_client.post("/api/v1/auth/forgot-password", json=forgot_password_payload)
+    forgot_password_response = use_test_client.post(
+        "/api/v1/auth/forgot-password", json=forgot_password_payload
+    )
     assert forgot_password_response.status_code == 200
 
     response_json = forgot_password_response.json()
@@ -116,13 +123,16 @@ async def test_reset_password(mock_generate_pin, mock_send_pin_email, use_test_c
     reset_password_payload = {
         "email": "master@dev.com",
         "pin": "123456",
-        "new_password": "nova_senha"
+        "new_password": "nova_senha",
     }
-    reset_password_response = use_test_client.post("/api/v1/auth/reset-password", json=reset_password_payload)
+    reset_password_response = use_test_client.post(
+        "/api/v1/auth/reset-password", json=reset_password_payload
+    )
     assert reset_password_response.status_code == 200
 
     response_json = reset_password_response.json()
     assert response_json["message"] == "Password reset successfully."
+
 
 @pytest.mark.asyncio
 async def test_change_password(use_test_client):
@@ -144,16 +154,16 @@ async def test_change_password(use_test_client):
     access_token = login_response.json()["access_token"]
 
     # Alterando a senha
-    change_password_payload = {
-        "old_password": "jujuba",
-        "new_password": "nova_senha"
-    }
+    change_password_payload = {"old_password": "jujuba", "new_password": "nova_senha"}
     headers = {"Authorization": f"Bearer {access_token}"}
-    change_password_response = use_test_client.put("/api/v1/auth/change-password", json=change_password_payload, headers=headers)
+    change_password_response = use_test_client.put(
+        "/api/v1/auth/change-password", json=change_password_payload, headers=headers
+    )
     assert change_password_response.status_code == 200
 
     response_json = change_password_response.json()
     assert response_json["message"] == "Password changed successfully"
+
 
 @pytest.mark.asyncio
 async def test_get_me(use_test_client):

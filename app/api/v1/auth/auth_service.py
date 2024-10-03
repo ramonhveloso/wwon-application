@@ -91,7 +91,7 @@ class AuthService:
 
         # Gerar PIN de 6 dígitos
         pin = self.auth_repository.generate_pin()
-        
+
         # Define o tempo de expiração do PIN
         pin_expiration = datetime.now() + timedelta(minutes=5)
 

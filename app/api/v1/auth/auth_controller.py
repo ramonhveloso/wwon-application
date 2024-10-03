@@ -48,7 +48,7 @@ async def post_login(
 @router.post("/logout")
 async def post_logout(
     authuser: Annotated[AuthUser, Security(jwt_middleware)],
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ) -> PostLogoutResponse:
     response_service = await auth_service.logout(db=db, authuser=authuser)
     return PostLogoutResponse.model_validate(response_service)

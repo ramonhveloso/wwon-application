@@ -1,5 +1,5 @@
-from datetime import datetime
 import random
+from datetime import datetime
 
 from sqlalchemy.orm import Session
 
@@ -61,7 +61,7 @@ class AuthRepository:
             db.query(TokenBlacklist).filter(TokenBlacklist.id == token_id).first()
             is not None
         )
-    
+
     def generate_pin(self):
         """Gera um PIN de 6 dígitos."""
         return "".join([str(random.randint(0, 9)) for _ in range(6)])
