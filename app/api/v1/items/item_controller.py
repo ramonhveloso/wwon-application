@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import get_db
 from app.api.v1.items.item_schemas import Item, ItemCreate
 from app.api.v1.items.item_service import ItemService
+from app.middleware.dependencies import get_db
 
 router = APIRouter()
 

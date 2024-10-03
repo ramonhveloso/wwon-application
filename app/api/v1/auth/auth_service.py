@@ -23,6 +23,7 @@ from app.api.v1.auth.auth_schemas import (
 )
 from app.core.mailer import send_pin_email
 from app.core.security import create_access_token, get_password_hash, verify_password
+from app.middleware.dependencies import AuthUser
 
 
 class AuthService:
@@ -62,7 +63,7 @@ class AuthService:
 
     def create_access_token(self, user) -> PostLoginResponse:
         # Criar token de acesso para o usuário
-        token_data = {"sub": user.email}
+        token_data = {"id": user.id, "email": user.email}
         response = {
             "access_token": create_access_token(token_data),
             "token_type": "bearer",
@@ -71,8 +72,8 @@ class AuthService:
 
     async def logout(self, db: Session, data: PostLogoutRequest) -> PostLogoutResponse:
         # Logout do usuário, adicionando o token à blacklist
-        token_id = await self.auth_repository.verify_token(data.token)
-        if token_id is None:
+        authuser = await self.auth_repository.verify_token(data.token)
+        if authuser.token_id is None:
             raise HTTPException(status_code=400, detail="Invalid token")
         await self.auth_repository.add_token(db, data.token)
         return PostLogoutResponse(message="Successfully logged out")
@@ -139,26 +140,23 @@ class AuthService:
         return PostResetPasswordResponse(message="Password reset successfully.")
 
     async def change_password(
-        self, data: PutChangePasswordRequest, db: Session
+        self, authuser: AuthUser, data: PutChangePasswordRequest, db: Session
     ) -> PutChangePasswordResponse:
         # Alterar a senha do usuário autenticado
-        email = await self.auth_repository.verify_token(data.token)
-        user = await self.auth_repository.get_user_by_email(db, email)
+        user = await self.auth_repository.get_user_by_id(db, authuser.id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         if not user or not verify_password(data.old_password, user.password):
             raise HTTPException(status_code=400, detail="Incorrect old password")
         hashed_password = get_password_hash(data.new_password)
-        await self.auth_repository.update_password(db, email, hashed_password)
+        await self.auth_repository.update_password(db, authuser.email, hashed_password)
         return PutChangePasswordResponse(message="Password changed successfully")
 
-    async def get_authenticated_user(
-        self, email: str, db: Session
-    ) -> GetAuthMeResponse:
+    async def get_authenticated_user(self, id: int, db: Session) -> GetAuthMeResponse:
         # Obter informações do usuário autenticado com base no token
-        if not email:
+        if not id:
             raise HTTPException(status_code=401, detail="Invalid token")
-        user = await self.auth_repository.get_user_by_email(db, email)
+        user = await self.auth_repository.get_user_by_id(db, id)
         return GetAuthMeResponse(
             username=user.username,
             email=user.email,

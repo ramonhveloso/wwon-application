@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app.api.v1.items.item_schemas import Item, ItemCreate
-from app.db.models.item import Item
+from app.database.models.item import Item
 
 
 class ItemService:

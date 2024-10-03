@@ -1,17 +1,17 @@
 from sqlalchemy.orm import Session
 
 from app.api.v1.users.user_schemas import PutUserRequest, PutUsersMeRequest
-from app.db.models.user import User
+from app.database.models.user import User
 
 
 class UserRepository:
-    async def get_user_by_email(self, db: Session, email: str):
-        """Obtém o usuário pelo email."""
-        return db.query(User).filter(User.email == email).first()
-
     async def get_user_by_id(self, db: Session, user_id: int):
         """Obtém o usuário pelo ID."""
         return db.query(User).filter(User.id == user_id).first()
+
+    async def get_user_by_email(self, db: Session, email: str):
+        """Obtém o usuário pelo email."""
+        return db.query(User).filter(User.email == email).first()
 
     async def update_user_profile(
         self, db: Session, user: User, data: PutUsersMeRequest

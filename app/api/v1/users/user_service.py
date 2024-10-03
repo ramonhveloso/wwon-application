@@ -13,7 +13,8 @@ from app.api.v1.users.user_schemas import (
     PutUsersMeRequest,
     PutUsersMeResponse,
 )
-from app.db.models.user import User
+from app.database.models.user import User
+from app.middleware.dependencies import AuthUser
 
 
 class UserService:
@@ -21,9 +22,9 @@ class UserService:
         self.user_repository = user_repository
 
     async def get_authenticated_user(
-        self, db: Session, email: str
+        self, db: Session, authuser: AuthUser
     ) -> GetUsersMeResponse:
-        user = await self.user_repository.get_user_by_email(db, email)
+        user = await self.user_repository.get_user_by_id(db, authuser.id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
         return GetUsersMeResponse(
@@ -33,9 +34,9 @@ class UserService:
         )
 
     async def update_user_profile(
-        self, db: Session, email: str, data: PutUsersMeRequest
+        self, db: Session, authuser: AuthUser, data: PutUsersMeRequest
     ) -> PutUsersMeResponse:
-        user = await self.user_repository.get_user_by_email(db, email)
+        user = await self.user_repository.get_user_by_id(db, authuser.id)
         if not user:
             raise HTTPException(status_code=404, detail="User not found")
 

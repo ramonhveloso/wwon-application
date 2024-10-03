@@ -1,29 +1,67 @@
 import pytest
-from fastapi.testclient import TestClient
+
 
 @pytest.mark.asyncio
-async def test_login(use_test_client: TestClient):
-    # criando um usuário
-    payload = {
+async def test_signup(use_test_client):
+    # Criando um usuário
+    signup_payload = {
         "username": "devMaster",
         "password": "jujuba",
         "email": "master@dev.com",
         "name": "dev",
     }
-    response = use_test_client.post("/api/v1/auth/signup", json=payload)
-    assert response.status_code == 201
-    # logando com o usuário criado
-    payload = {"username": "devMaster", "password": "jujuba"}
-    response = use_test_client.post("/api/v1/auth/login", json=payload)
-    assert response.status_code == 200
-    # response_json = response.json()
-    # assert response_json["access_token"]
-    # assert response_json["refresh_token"]
-    # assert response_json["access_token_expires"]
-    # assert response_json["nickname"] == "dev"
-    # assert response_json["email"] == "dev@test.com.br"
-    # assert response_json["phone"] == "9999999999"
+    signup_response = use_test_client.post("/api/v1/auth/signup", json=signup_payload)
+    assert signup_response.status_code == 201
 
 
+@pytest.mark.asyncio
+async def test_login(use_test_client):
+    # Criando um usuário
+    signup_payload = {
+        "username": "devMaster",
+        "password": "jujuba",
+        "email": "master@dev.com",
+        "name": "dev",
+    }
+    signup_response = use_test_client.post("/api/v1/auth/signup", json=signup_payload)
+    assert signup_response.status_code == 201
+
+    # Logando com o usuário criado
+    login_payload = {"username": "master@dev.com", "password": "jujuba"}
+    login_response = use_test_client.post("/api/v1/auth/login", data=login_payload)
+    assert login_response.status_code == 200
+
+    response_json = login_response.json()
+    assert "access_token" in response_json
+    assert "token_type" in response_json
 
 
+@pytest.mark.asyncio
+async def test_refresh_token(use_test_client):
+    # Criando um usuário
+    signup_payload = {
+        "username": "devMaster",
+        "password": "jujuba",
+        "email": "master@dev.com",
+        "name": "dev",
+    }
+    signup_response = use_test_client.post("/api/v1/auth/signup", json=signup_payload)
+    assert signup_response.status_code == 201
+
+    # Logando com o usuário criado
+    login_payload = {"username": "master@dev.com", "password": "jujuba"}
+    login_response = use_test_client.post("/api/v1/auth/login", data=login_payload)
+    assert login_response.status_code == 200
+
+    access_token = login_response.json()["access_token"]
+
+    # Renovando o token de acesso
+    refresh_payload = {"refresh_token": access_token}
+    refresh_response = use_test_client.post(
+        "/api/v1/auth/refresh-token", json=refresh_payload
+    )
+    assert refresh_response.status_code == 200
+
+    response_json = refresh_response.json()
+    assert "access_token" in response_json
+    assert "token_type" in response_json

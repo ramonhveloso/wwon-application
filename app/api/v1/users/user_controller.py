@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 
-from app.api.v1.dependencies import get_db, token_verifier
 from app.api.v1.users.user_repository import UserRepository
 from app.api.v1.users.user_schemas import (
     DeleteUserResponse,
@@ -15,6 +16,7 @@ from app.api.v1.users.user_schemas import (
     User,
 )
 from app.api.v1.users.user_service import UserService
+from app.middleware.dependencies import AuthUser, get_db, jwt_middleware
 
 router = APIRouter()
 user_service = UserService(UserRepository())
@@ -23,9 +25,12 @@ user_service = UserService(UserRepository())
 # Obter perfil do usuário autenticado
 @router.get("/me")
 async def get_users_me(
-    email: str = Depends(token_verifier), db: Session = Depends(get_db)
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
+    db: Session = Depends(get_db),
 ) -> GetUsersMeResponse:
-    response_service = await user_service.get_authenticated_user(db=db, email=email)
+    response_service = await user_service.get_authenticated_user(
+        db=db, authuser=authuser
+    )
     return GetUsersMeResponse.model_validate(response_service)
 
 
@@ -33,11 +38,11 @@ async def get_users_me(
 @router.put("/me")
 async def put_users_me(
     data: PutUsersMeRequest,
-    email: str = Depends(token_verifier),
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
     db: Session = Depends(get_db),
 ) -> PutUsersMeResponse:
     response_service = await user_service.update_user_profile(
-        db=db, email=email, data=data
+        db=db, authuser=authuser, data=data
     )
     return PutUsersMeResponse.model_validate(response_service)
 
@@ -45,7 +50,8 @@ async def put_users_me(
 # (Admin) Listar usuários
 @router.get("/")
 async def get_users(
-    db: Session = Depends(get_db), email: str = Depends(token_verifier)
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
+    db: Session = Depends(get_db),
 ) -> GetUsersResponse:
     response_service = await user_service.get_all_users(db)
     return GetUsersResponse(
@@ -56,9 +62,11 @@ async def get_users(
 # Ver perfil de um usuário específico
 @router.get("/{user_id}")
 async def get_user(
-    user_id: int, db: Session = Depends(get_db), email: str = Depends(token_verifier)
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
+    user_id: int,
+    db: Session = Depends(get_db),
 ) -> GetUserResponse:
-    response_service = await user_service.get_user_by_id(db, user_id)
+    response_service = await user_service.get_user_by_id(db=db, user_id=user_id)
     if not response_service:
         raise HTTPException(status_code=404, detail="User not found")
     return GetUserResponse.model_validate(response_service)
@@ -67,10 +75,10 @@ async def get_user(
 # Atualizar dados de um usuário específico
 @router.put("/{user_id}")
 async def put_user(
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
     data: PutUserRequest,
     user_id: int,
     db: Session = Depends(get_db),
-    email: str = Depends(token_verifier),
 ) -> PutUserResponse:
     response_service = await user_service.update_user(db=db, user_id=user_id, data=data)
     return PutUserResponse.model_validate(response_service)
@@ -79,7 +87,9 @@ async def put_user(
 # Excluir um usuário específico
 @router.delete("/{user_id}")
 async def delete_user(
-    user_id: int, db: Session = Depends(get_db), mail: str = Depends(token_verifier)
+    authuser: Annotated[AuthUser, Security(jwt_middleware)],
+    user_id: int,
+    db: Session = Depends(get_db),
 ) -> DeleteUserResponse:
     response_service = await user_service.delete_user(db=db, user_id=user_id)
     if not response_service:

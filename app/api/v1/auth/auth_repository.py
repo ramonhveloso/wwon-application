@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 
 from app.api.v1.auth.auth_schemas import PostSignUpRequest
 from app.core.security import decode_access_token
-from app.db.models.blacklist import TokenBlacklist
-from app.db.models.user import User
+from app.database.models.blacklist import TokenBlacklist
+from app.database.models.user import User
 
 
 class AuthRepository:
@@ -26,6 +26,10 @@ class AuthRepository:
         db.refresh(db_user)
         return db_user
 
+    async def get_user_by_id(self, db: Session, id: int):
+        """Obter o usuário pelo id."""
+        return db.query(User).filter(User.id == id).first()
+
     async def get_user_by_email(self, db: Session, email: str):
         """Obter o usuário pelo e-mail."""
         return db.query(User).filter(User.email == email).first()
@@ -40,7 +44,7 @@ class AuthRepository:
     async def verify_token(self, token: str):
         """Decodificar o token JWT para verificar se é válido."""
         payload = decode_access_token(token)
-        return payload.get("sub") if payload else None
+        return payload if payload else None
 
     async def add_token(self, db: Session, token_id: str):
         """Adicionar um token à blacklist."""

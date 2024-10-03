@@ -1,31 +1,50 @@
-from dotenv import load_dotenv
-import pytest
 import os
 
-# Carrega o arquivo .env
-load_dotenv()
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
-# Pega a URL do banco de dados do arquivo .env
-DATABASE_URL = os.getenv("DATABASE_URL")
-SECRET_KEY = os.getenv("SECRET_KEY")
-SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = os.getenv("SMTP_PORT")
-SMTP_USERNAME = os.getenv("SMTP_USERNAME")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+from app.database.base import Base
+from app.main import app
+from app.middleware.dependencies import get_db
 
-os.environ.update(
-    {
-        "DATABASE_URL":f"{DATABASE_URL}",
-        "SECRET_KEY":f"{SECRET_KEY}",
-        "SMTP_SERVER":f"{SMTP_SERVER}",
-        "SMTP_PORT":f"{SMTP_PORT}",
-        "SMTP_USERNAME":f"{SMTP_USERNAME}",
-        "SMTP_PASSWORD":f"{SMTP_PASSWORD}",
-    }
-)
+# Configurar o banco de dados PostgreSQL para testes
+DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+if DATABASE_URL is None:
+    raise ValueError("TEST_DATABASE_URL não está configurado")
 
-@pytest.fixture
-def use_test_client():
-    from starlette.testclient import TestClient
-    from app.api.v1.router import router
-    return TestClient(router)
+engine = create_engine(DATABASE_URL)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Criar as tabelas no banco de dados de teste
+Base.metadata.create_all(bind=engine)
+
+
+# Fixture para o banco de dados de teste
+@pytest.fixture(scope="function")
+def db_session():
+    connection = engine.connect()
+    transaction = connection.begin()
+    session = TestingSessionLocal(bind=connection)
+
+    yield session
+
+    session.close()
+    transaction.rollback()
+    connection.close()
+
+
+# Fixture para o cliente de teste
+@pytest.fixture(scope="function")
+def use_test_client(db_session):
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            db_session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    client = TestClient(app)
+    yield client
+    app.dependency_overrides.clear()

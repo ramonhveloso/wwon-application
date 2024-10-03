@@ -11,6 +11,8 @@ class Response(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -28,6 +30,8 @@ class PostSignUpRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -44,6 +48,8 @@ class PostSignUpResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -56,6 +62,8 @@ class PostLoginRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -68,6 +76,8 @@ class PostLoginResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -79,6 +89,8 @@ class PostLogoutRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -94,6 +106,8 @@ class PostForgotPasswordRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -111,6 +125,8 @@ class PostResetPasswordRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -119,7 +135,6 @@ class PostResetPasswordResponse(Response):
 
 
 class PutChangePasswordRequest(BaseModel):
-    token: str
     old_password: str
     new_password: str
 
@@ -128,6 +143,8 @@ class PutChangePasswordRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -143,6 +160,8 @@ class GetMeRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -159,4 +178,6 @@ class GetAuthMeResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)

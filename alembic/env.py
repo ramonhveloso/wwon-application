@@ -35,7 +35,7 @@ config.set_main_option("sqlalchemy.url", DATABASE_URL)
 # target_metadata = None
 
 # Importe o seu modelo para o autogenerate
-from app.db.base import Base
+from app.database.base import Base
 
 # Faz a conexão com o banco de dados e define as opções de configuração de migração
 target_metadata = Base.metadata
