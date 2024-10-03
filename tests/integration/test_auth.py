@@ -4,7 +4,7 @@ import pytest
 
 
 @pytest.mark.asyncio
-async def test_signup(use_test_client):
+async def test_post_signup(use_test_client):
     # Criando um usuário
     signup_payload = {
         "username": "devMaster",
@@ -17,7 +17,7 @@ async def test_signup(use_test_client):
 
 
 @pytest.mark.asyncio
-async def test_login(use_test_client):
+async def test_post_login(use_test_client):
     # Criando um usuário
     signup_payload = {
         "username": "devMaster",
@@ -39,7 +39,7 @@ async def test_login(use_test_client):
 
 
 @pytest.mark.asyncio
-async def test_logout(use_test_client):
+async def test_post_logout(use_test_client):
     # Criando um usuário
     signup_payload = {
         "username": "devMaster",
@@ -68,7 +68,7 @@ async def test_logout(use_test_client):
 
 @pytest.mark.asyncio
 @patch("app.core.mailer.send_pin_email")
-async def test_forgot_password(mock_send_pin_email, use_test_client):
+async def test_post_forgot_password(mock_send_pin_email, use_test_client):
     mock_send_pin_email.return_value = None
 
     # Criando um usuário
@@ -95,7 +95,7 @@ async def test_forgot_password(mock_send_pin_email, use_test_client):
 @pytest.mark.asyncio
 @patch("app.core.mailer.send_pin_email")
 @patch("app.api.v1.auth.auth_repository.AuthRepository.generate_pin")
-async def test_reset_password(mock_generate_pin, mock_send_pin_email, use_test_client):
+async def test_post_reset_password(mock_generate_pin, mock_send_pin_email, use_test_client):
     mock_send_pin_email.return_value = None
     mock_generate_pin.return_value = "123456"
 
@@ -135,7 +135,7 @@ async def test_reset_password(mock_generate_pin, mock_send_pin_email, use_test_c
 
 
 @pytest.mark.asyncio
-async def test_change_password(use_test_client):
+async def test_put_change_password(use_test_client):
     # Criando um usuário
     signup_payload = {
         "username": "devMaster",

@@ -14,6 +14,8 @@ class GetUsersMeResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -27,6 +29,8 @@ class PutUsersMeRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -40,6 +44,8 @@ class PutUsersMeResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -55,6 +61,8 @@ class User(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -66,6 +74,8 @@ class GetUsersResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -80,6 +90,8 @@ class GetUserResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -93,6 +105,8 @@ class PutUserRequest(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -106,6 +120,8 @@ class PutUserResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)
 
 
@@ -120,4 +136,6 @@ class DeleteUserResponse(BaseModel):
 
     @classmethod
     def model_validate(cls, data):
+        if isinstance(data, cls):
+            data = data.model_dump()
         return cls(**data)

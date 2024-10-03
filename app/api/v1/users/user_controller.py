@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Security
+from fastapi import APIRouter, Depends, HTTPException, Security, status
 from sqlalchemy.orm import Session
 
 from app.api.v1.users.user_repository import UserRepository
@@ -55,7 +55,7 @@ async def get_users(
 ) -> GetUsersResponse:
     response_service = await user_service.get_all_users(db)
     return GetUsersResponse(
-        users=[User.model_validate(user) for user in response_service]
+       users=response_service
     )
 
 
