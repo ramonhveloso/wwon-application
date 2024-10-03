@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Security, status
+from fastapi import APIRouter, Depends, HTTPException, Security
 from sqlalchemy.orm import Session
 
 from app.api.v1.users.user_repository import UserRepository
@@ -13,7 +13,6 @@ from app.api.v1.users.user_schemas import (
     PutUserResponse,
     PutUsersMeRequest,
     PutUsersMeResponse,
-    User,
 )
 from app.api.v1.users.user_service import UserService
 from app.middleware.dependencies import AuthUser, get_db, jwt_middleware
@@ -54,9 +53,7 @@ async def get_users(
     db: Session = Depends(get_db),
 ) -> GetUsersResponse:
     response_service = await user_service.get_all_users(db)
-    return GetUsersResponse(
-       users=response_service
-    )
+    return GetUsersResponse(users=response_service)
 
 
 # Ver perfil de um usuário específico

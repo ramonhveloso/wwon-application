@@ -95,7 +95,9 @@ async def test_post_forgot_password(mock_send_pin_email, use_test_client):
 @pytest.mark.asyncio
 @patch("app.core.mailer.send_pin_email")
 @patch("app.api.v1.auth.auth_repository.AuthRepository.generate_pin")
-async def test_post_reset_password(mock_generate_pin, mock_send_pin_email, use_test_client):
+async def test_post_reset_password(
+    mock_generate_pin, mock_send_pin_email, use_test_client
+):
     mock_send_pin_email.return_value = None
     mock_generate_pin.return_value = "123456"
 

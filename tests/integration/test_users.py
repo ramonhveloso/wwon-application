@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_get_users_me(use_test_client):
     # Criando um usuário
@@ -28,6 +29,7 @@ async def test_get_users_me(use_test_client):
     assert response_json["email"] == "master@dev.com"
     assert response_json["name"] == "dev"
 
+
 @pytest.mark.asyncio
 async def test_put_users_me(use_test_client):
     # Criando um usuário
@@ -54,12 +56,15 @@ async def test_put_users_me(use_test_client):
         "name": "devUpdated",
     }
     headers = {"Authorization": f"Bearer {access_token}"}
-    put_me_response = use_test_client.put("/api/v1/users/me", json=update_profile_payload, headers=headers)
+    put_me_response = use_test_client.put(
+        "/api/v1/users/me", json=update_profile_payload, headers=headers
+    )
     assert put_me_response.status_code == 200
 
     response_json = put_me_response.json()
     assert response_json["email"] == "master_updated@dev.com"
     assert response_json["name"] == "devUpdated"
+
 
 @pytest.mark.asyncio
 async def test_get_users(use_test_client):
@@ -88,6 +93,7 @@ async def test_get_users(use_test_client):
     response_json = get_users_response.json()
     assert "users" in response_json
 
+
 @pytest.mark.asyncio
 async def test_get_user(use_test_client):
     # Criando um usuário
@@ -115,7 +121,7 @@ async def test_get_user(use_test_client):
 
     response_json = get_me_response.json()
     user_id = response_json["id"]
-    
+
     headers = {"Authorization": f"Bearer {access_token}"}
     get_user_response = use_test_client.get(f"/api/v1/users/{user_id}", headers=headers)
     assert get_user_response.status_code == 200
@@ -123,6 +129,7 @@ async def test_get_user(use_test_client):
     response_json = get_user_response.json()
     assert response_json["email"] == "master@dev.com"
     assert response_json["name"] == "dev"
+
 
 @pytest.mark.asyncio
 async def test_put_user(use_test_client):
@@ -158,12 +165,15 @@ async def test_put_user(use_test_client):
         "name": "devUpdated",
     }
     headers = {"Authorization": f"Bearer {access_token}"}
-    put_user_response = use_test_client.put(f"/api/v1/users/{user_id}", json=update_user_payload, headers=headers)
+    put_user_response = use_test_client.put(
+        f"/api/v1/users/{user_id}", json=update_user_payload, headers=headers
+    )
     assert put_user_response.status_code == 200
 
     response_json = put_user_response.json()
     assert response_json["email"] == "master_updated@dev.com"
     assert response_json["name"] == "devUpdated"
+
 
 @pytest.mark.asyncio
 async def test_delete_user(use_test_client):
@@ -194,7 +204,9 @@ async def test_delete_user(use_test_client):
     user_id = response_json["id"]
 
     headers = {"Authorization": f"Bearer {access_token}"}
-    delete_user_response = use_test_client.delete(f"/api/v1/users/{user_id}", headers=headers)
+    delete_user_response = use_test_client.delete(
+        f"/api/v1/users/{user_id}", headers=headers
+    )
     assert delete_user_response.status_code == 200
 
     # Verificando se o usuário foi deletado
