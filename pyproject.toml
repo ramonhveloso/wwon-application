@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "erp-backend"
+name = "boilerplate"
 version = "0.1.0"
 description = "Microserviço destinado a manipulação dos dados tomadores e prestadores"
 authors = ["ramonhveloso <ramon.veloso@inovebanco.com.br>"]
